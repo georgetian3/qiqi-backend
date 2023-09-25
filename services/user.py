@@ -13,6 +13,7 @@ class UserService:
             password_hash='testpwhash',
             email='test@georgetian.com',
         )
+        # TypeError: 'Session' object does not support the asynchronous context manager protocol
         async with self.database.async_session() as session:
             session.add(new_user)
             await session.commit()
