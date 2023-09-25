@@ -1,9 +1,12 @@
 """ QiQi API """
 
-import fastapi
+from apis.user import UserApi
+from apis.location import LocationApi
+
 from starlette.responses import RedirectResponse
 
-class Api(fastapi.FastAPI):
+        
+class QiQiApi(UserApi, LocationApi):
     """ QiQi API """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -14,6 +17,3 @@ class Api(fastapi.FastAPI):
         @self.get('/health')
         async def health():
             return 'ok'
-
-
-        

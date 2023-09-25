@@ -1,4 +1,4 @@
-import api
+import apis.api as api
 
-api = api.Api()
+api = api.QiQiApi()
 
