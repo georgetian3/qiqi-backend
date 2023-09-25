@@ -8,3 +8,7 @@ class UserApi(fastapi.FastAPI):
         @self.get('/user')
         async def user():
             return 'user'
+        
+        @self.post('/user')
+        async def user():
+            return await self.user_service.create_user()
