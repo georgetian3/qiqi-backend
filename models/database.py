@@ -1,7 +1,7 @@
 import asyncio
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from sqlmodel import SQLModel
@@ -14,11 +14,10 @@ import nest_asyncio
 nest_asyncio.apply()
 
 
-
 class Database:
     def __init__(self, database_url: str):
         self.engine = create_async_engine(database_url)
-        self.async_session = sessionmaker(self.engine)
+        self.async_session = sessionmaker(self.engine, class_=AsyncSession)
         self.is_sqlite = 'sqlite' in database_url
 
         async def _sqlite_foreign_keys():
