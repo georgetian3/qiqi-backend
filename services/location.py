@@ -39,9 +39,24 @@ class LocationService:
         return 'success'
     
     async def get_friend_location_service(self, id: int):
+        #dictionary code: {lattitude, longitude}
+        friend_location = {}
         async with self.database.async_session() as session:
-            statement = await session.execute(select(models.user.User).where(models.user.User.id == 1))
-            print(statement.one())
+            statement = await session.execute(select(models.user.User).where(models.user.User.id == id))
+            friendlist = statement.one()[0].friendlist
+            friendlist = friendlist.split(",")
+            row = 1
+            for i in await session.execute(select(Location)):
+                if i[0].share_location is not False:
+                    location_lat = i[0].location_lat
+                    location_long = i[0].location_long
+                    friend_location[row] = {"lat": location_lat, "long": location_long}
+                    row = row + 1
+
+        if friend_location == {}:
+            return 'All your friends are either offline, or they do not have Share Location turned on.'
+        return friend_location
+
         
         return 'location'
     

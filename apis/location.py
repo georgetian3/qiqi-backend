@@ -19,7 +19,7 @@ class LocationApi(fastapi.FastAPI):
         
         @self.get('/get_friend_location/{user_id}')
         async def get_friend_location(id: int):
-            return await self.location_service.get_friend_location_service
+            return await self.location_service.get_friend_location_service(id)
 
         @self.get('/bikes_around_me/{location}')
         async def CreateRedZoneMap(my_lat: float, my_long: float):

@@ -2,9 +2,13 @@ import models.user
 import models.database
 import models.location
 
+from typing import Optional
+
 from sqlmodel import select
 
 from config import Config
+
+import sqlalchemy
 
 class UserService:
 
@@ -54,7 +58,6 @@ class UserService:
         return 'successfully set share_location to {}'.format(share_location)
     
     async def update_user(self, user_id: int, userClass: models.user.UpdateUser):
-        #get user data
         async with self.database.async_session() as session:
             statement = await session.execute(select(models.user.User).where(models.user.User.id == user_id))
             
@@ -74,3 +77,45 @@ class UserService:
 
         return 'update user variable success'
     
+    async def add_friend(self, user_id, friend_user_name):
+        #find friend's user id
+        async with self.database.async_session() as session:
+            try:
+                #find friend's id with username
+                statement = await session.execute(select(models.user.User).where(models.user.User.username == friend_user_name))
+                friend = statement.one()[0]
+
+                #add friend's id to user
+                user_statement = await session.execute(select(models.user.User).where(models.user.User.id == user_id))
+                user = user_statement.one()[0]
+                print(user.friendlist)
+                if user.friendlist == None and friend.friendlist == None:
+                    user.friendlist = "{}".format(friend.id)
+                    friend.friendlist = "{}".format(user_id)
+                    await session.commit()
+                    return 'Friend with name {} successfully added!'.format(friend_user_name)
+                if friend.friendlist == None:
+                    user.friendlist = user.friendlist + ",{}".format(friend.id)
+                    friend.friendlist = "{}".format(user_id)
+                    await session.commit()
+                    return 'Friend with name {} successfully added!'.format(friend_user_name)
+                if user.friendlist == None:
+                    user.friendlist = "{}".format(friend.id)
+                    friend.friendlist = friend.friendlist + ",{}".format(user.id)
+                    await session.commit()
+                    return 'Friend with name {} successfully added!'.format(friend_user_name)
+                else:
+                    friendlist = user.friendlist
+                    friendlist = friendlist.split(",")
+                    for i in friendlist:
+                        if int(i) == int(friend.id):
+                            return 'This user is already your friend!'
+                    else:
+                        user.friendlist = user.friendlist + ",{}".format(friend.id)
+                        friend.friendlist = friend.friendlist + ",{}".format(friend.id)
+                        await session.commit()
+                        return 'Friend with name {} successfully added!'.format(friend_user_name)
+            except sqlalchemy.exc.NoResultFound:
+                return 'User with that name does not exist!'
+
+            

@@ -34,3 +34,7 @@ class UserApi(fastapi.FastAPI):
         @self.post("/update_user/{user_id}", response_model=UpdateUser)
         async def update_user(user_id: int, userClass: UpdateUser):                
             return await self.user_service.update_user(user_id, userClass)
+        
+        @self.post("/add_friend/{user_id}")
+        async def add_friend(user_id: int, friend_username: str):                
+            return await self.user_service.add_friend(user_id, friend_username)
