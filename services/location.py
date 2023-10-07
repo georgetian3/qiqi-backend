@@ -62,7 +62,7 @@ class LocationService:
         x = []
         y = []
         #get map image of user's location
-        map_img = requests.get("https://api.map.baidu.com/staticimage?ak=GjobZyBGoObjhYqt1NyGCD2HAgZVHuzb&center={},{}&markers={},{}&markerStyles=l,A,&width=750&height=750&zoom=16&scale=1&coordtype=gcj02ll&dpiType=ph"
+        map_img = requests.get("https://api.map.baidu.com/staticimage?center={},{}&markers={},{}&markerStyles=l,A,&width=750&height=750&zoom=16&scale=1&coordtype=gcj02ll&dpiType=ph"
                                 .format(my_long, my_lat, my_long, my_lat), stream=True)
         if map_img.status_code == 200:
             with open("savedmaps/usermap.png",'wb') as f:
