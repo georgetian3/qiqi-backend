@@ -1,7 +1,11 @@
-from config import Config
 import models.user
 import models.database
 import models.location
+
+from sqlmodel import select
+
+from config import Config
+
 class UserService:
 
     def __init__(self, database: models.database.Database, config: Config):
@@ -35,4 +39,38 @@ class UserService:
                 password_hash=None,
                 email='test@georgetian.com'
         )
+    
+    async def update_share_location_status(self, user_id: int, share_location: bool):
+        async with self.database.async_session() as session:
+            statement = await session.execute(select(models.location.Location).where(models.location.Location.user_id == user_id))
+
+            user_location_var = statement.one()[0]
+            
+            user_location_var.share_location = share_location
+
+            session.add(user_location_var)
+            await session.commit()
+        
+        return 'successfully set share_location to {}'.format(share_location)
+    
+    async def update_user(self, user_id: int, userClass: models.user.UpdateUser):
+        #get user data
+        async with self.database.async_session() as session:
+            statement = await session.execute(select(models.user.User).where(models.user.User.id == user_id))
+            
+            user = statement.one()[0]
+
+            if userClass.username != None:
+                user.username = userClass.username
+            if userClass.password_hash != None:
+                user.password_hash = userClass.password_hash
+            if userClass.email != None:
+                user.email = userClass.email 
+            if userClass.friendlist != None:
+                user.friendlist = userClass.friendlist   
+
+            session.add(user)
+            await session.commit()
+
+        return 'update user variable success'
     

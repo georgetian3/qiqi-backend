@@ -13,7 +13,6 @@ from models.location import *
 import nest_asyncio
 nest_asyncio.apply()
 
-
 class Database:
     def __init__(self, database_url: str):
         self.engine = create_async_engine(database_url)
