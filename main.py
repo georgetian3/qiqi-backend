@@ -1,7 +1,12 @@
 from apis.api import QiQiApi
+
 import models.database
+
 import services.user
+import services.location
+
 from config import Config
+
 import argparse
 
 config = Config()
@@ -16,4 +21,5 @@ if __name__ == '__main__':
         exit()
 
 user_service = services.user.UserService(db, config)
-api = QiQiApi(user_service)
+location_service = services.location.LocationService(db, config)
+api = QiQiApi(user_service, location_service)
