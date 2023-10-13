@@ -1,8 +1,10 @@
 import fastapi
 
 from fastapi.responses import FileResponse
+import models.location
+from base import QiQiBaseApi
         
-class LocationApi(fastapi.FastAPI):
+class LocationApi(QiQiBaseApi):
     """ Location API """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -10,6 +12,10 @@ class LocationApi(fastapi.FastAPI):
         @self.get('/location')
         async def location():
             return 'location'
+        
+        @self.post('/location')
+        async def upload_location(location: models.location.Location):
+            return await self.location_service.upload_location(location)
         
         @self.post('/update_location/{user_id_and_location}')
         async def update_location(id: int, lat: float, long: float):

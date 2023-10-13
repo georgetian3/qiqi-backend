@@ -7,13 +7,14 @@ DeviceID = int
 UserID = int
 
 
-class Location(SQLModel, table = True):
+class Location(SQLModel):
+    latitude: float = None
+    longitude: float = None
+    altitude: float = None
+
+class LocationDB(Location, table=True):
     __tablename__ = 'location'
     user_id: UserID = Field(primary_key=True)
-    location_lat: Optional[float] = None
-    location_long: Optional[float] = None
-    share_location: Optional[bool] = False
-
     
 class UpdateShareLocation(SQLModel, table=True):
     __tablename__ = 'location'

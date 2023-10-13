@@ -26,6 +26,9 @@ class LocationService:
         self.config = config
         self.database = database
 
+    async def update_location(self, user_id: int, location):
+        ...
+
     async def update_location_service(self, id: int, lat: float, long: float):
         async with self.database.async_session() as session:
             statement = await session.execute(select(Location).where(Location.user_id == id))
