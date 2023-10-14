@@ -34,16 +34,16 @@ class UserService:
             await session.commit()
         return new_user
 
-    async def get_user(self, id_or_username: models.user.UserID | str) -> models.user.User:
-        if isinstance(id_or_username, models.user.UserID):
-            ...
-        return models.user.User(
-                id=0,
-                usernaname='test',
-                password_hash=None,
-                email='test@georgetian.com'
-        )
-    
+    async def get_user(self, user_id: models.user.UserID = None, username: str = None) -> models.user.User | None:
+        if user_id is None and username is None:
+            return None
+        async with self.database.async_session() as session:
+            if user_id is not None:
+                user = await session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.id == user_id))
+            else:
+                user = await session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.username == username))
+        return user
+
     async def update_share_location_status(self, user_id: int, share_location: bool):
         async with self.database.async_session() as session:
             statement = await session.execute(select(models.location.Location).where(models.location.Location.user_id == user_id))

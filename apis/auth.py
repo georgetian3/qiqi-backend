@@ -19,16 +19,30 @@ class AuthApi(QiQiBaseApi):
         async def token(
             form_data: Annotated[OAuth2PasswordRequestForm, fastapi.Depends()]
         ):
-            user = await self.auth_service.authenticate(form_data.username, form_data.password)
+            user = await self.services.auth.authenticate(form_data.username, form_data.password)
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail='Incorrect username or password',
                     headers={'WWW-Authenticate': 'Bearer'},
                 )
-            access_token = self.auth_service.create_access_token({'sub': user.username})
+            access_token = self.services.auth.create_access_token({'sub': user.id})
             return {'access_token': access_token, 'token_type': 'bearer'}
 
+
+        async def get_current_user(self, token: str) -> models.user.User | None:
+            try:
+                payload = jwt.decode(token, self.config.SECRET_KEY, algorithms=[self.config.ALGORITHM])
+                user_id: UserID = payload.get('sub')
+                if user_id is None:
+                    return None
+            except JWTError:
+                return None
+            async with self.database.async_session() as session:
+                user = session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.id == id))
+            if user is None:
+                return None
+            return user
 
         async def get_current_user(token: Annotated[str, Depends(self.oauth2_scheme)]):
             credentials_exception = HTTPException(
