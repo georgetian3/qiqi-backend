@@ -1,7 +1,4 @@
 import fastapi
-import services.user
-import services.location
-import services.auth
 from services.services import QiQiServices
 from starlette.responses import RedirectResponse
 

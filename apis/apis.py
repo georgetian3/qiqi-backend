@@ -2,12 +2,10 @@
 
 from apis.user import UserApi
 from apis.location import LocationApi
-
-
         
 class QiQiApi(
     UserApi,
-    LocationApi   
+    LocationApi,
 ):
     """ QiQi API """
     def __init__(self, *args, **kwargs):

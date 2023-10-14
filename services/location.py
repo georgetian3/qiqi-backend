@@ -35,6 +35,8 @@ class LocationService:
         async with self.database.async_session() as session:
             await session.merge(location_db)
         ...
+    async def get_traffic(self):
+        ...
 
     async def get_friends_location(self, user_id: UserID):
         friends = await 1

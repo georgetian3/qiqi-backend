@@ -6,7 +6,6 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlmodel import SQLModel
 
-from models.auth import *
 from models.user import *
 from models.location import *
 

@@ -2,6 +2,10 @@ from sqlmodel import SQLModel, Field
 from pydantic import BaseModel
 from typing import Optional
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 UserID = int
 
 class User(SQLModel, table=True):
@@ -9,9 +13,9 @@ class User(SQLModel, table=True):
     id: UserID = Field(primary_key=True)
     username: str = Field(unique=True, index=True)
     password_hash: str
+    nickname: str
     email: str
     share_location: bool = True
-
 
 class Friend(SQLModel, table=True):
     __tablename__ = 'friend'
