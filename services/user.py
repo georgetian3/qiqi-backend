@@ -6,13 +6,13 @@ from typing import Optional
 
 from sqlmodel import select
 
-from config import Config
+from config import QiQiConfig
 
 import sqlalchemy
 
 class UserService:
 
-    def __init__(self, database: models.database.Database, config: Config):
+    def __init__(self, database: models.database.QiQiDatabase, config: QiQiConfig):
         self.config = config
         self.database = database
 
@@ -119,3 +119,5 @@ class UserService:
                 return 'User with that name does not exist!'
 
             
+    async def add_friend_request(self, user_id, friend_id):
+        ...

@@ -1,21 +1,15 @@
-import fastapi
-
 from fastapi.responses import FileResponse
 import models.location
-from base import QiQiBaseApi
+from apis.base import QiQiBaseApi
         
 class LocationApi(QiQiBaseApi):
     """ Location API """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        @self.get('/location')
-        async def location():
-            return 'location'
-        
         @self.post('/location')
         async def upload_location(location: models.location.Location):
-            return await self.location_service.upload_location(location)
+            return await self.services.location.upload_location(location)
         
         @self.post('/update_location/{user_id_and_location}')
         async def update_location(id: int, lat: float, long: float):

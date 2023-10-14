@@ -1,5 +1,5 @@
 import models.user
-import models.database
+from models.user import UserID
 import models.location
 from models.location import Location
 
@@ -9,37 +9,35 @@ from sqlmodel import select
 
 from math import sin, cos, radians, asin, sqrt
 
-import requests
+#import requests
 
 import shutil
 
-import numpy as np
+#import numpy as np
 
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 
-from config import Config
+from models.database import QiQiDatabase
+from config import QiQiConfig
+import sqlalchemy
+from datetime import datetime
+import pytz
+from typing import List
 
 class LocationService:
-
-    def __init__(self, database: models.database.Database, config: Config):
+    def __init__(self, database: QiQiDatabase, config: QiQiConfig):
         self.config = config
         self.database = database
 
-    async def update_location(self, user_id: int, location):
+    async def upload_location(self, user_id: UserID, location: models.location.Location):
+        location_db = models.location.LocationDB(**location.dict(), user_id=user_id, timestamp=datetime.now().astimezone(pytz.UTC))
+        async with self.database.async_session() as session:
+            await session.merge(location_db)
         ...
 
-    async def update_location_service(self, id: int, lat: float, long: float):
-        async with self.database.async_session() as session:
-            statement = await session.execute(select(Location).where(Location.user_id == id))
-
-            result = statement.one()[0]
-            result.location_lat = lat
-            result.location_long = long
-
-            session.add(result)
-            await session.commit()
-        return 'success'
+    async def get_friends_location(self, user_id: UserID):
+        friends = await 1
     
     async def get_friend_location_service(self, id: int):
         #dictionary code: {lattitude, longitude}
@@ -74,91 +72,91 @@ class LocationService:
                     row = row + 1
             return activeuser_location
 
-    async def find_redzone(self, activeuser_location, my_lat, my_long):
-        x_long = []
-        y_lat = []
-        x = []
-        y = []
-        #get map image of user's location
-        map_img = requests.get("https://api.map.baidu.com/staticimage?center={},{}&markers={},{}&markerStyles=l,A,&width=750&height=750&zoom=16&scale=1&coordtype=gcj02ll&dpiType=ph"
-                                .format(my_long, my_lat, my_long, my_lat), stream=True)
-        if map_img.status_code == 200:
-            with open("savedmaps/usermap.png",'wb') as f:
-                shutil.copyfileobj(map_img.raw, f)
-        else:
-            return({"error": "could not fetch map image"})
-        #find distance between users, +- 20 meter error value when compared to baidu map's distance calculator
-        my_lat_rad = radians(my_lat)
-        my_long_rad = radians(my_long)
+    # async def find_redzone(self, activeuser_location, my_lat, my_long):
+    #     x_long = []
+    #     y_lat = []
+    #     x = []
+    #     y = []
+    #     #get map image of user's location
+    #     map_img = requests.get("https://api.map.baidu.com/staticimage?center={},{}&markers={},{}&markerStyles=l,A,&width=750&height=750&zoom=16&scale=1&coordtype=gcj02ll&dpiType=ph"
+    #                             .format(my_long, my_lat, my_long, my_lat), stream=True)
+    #     if map_img.status_code == 200:
+    #         with open("savedmaps/usermap.png",'wb') as f:
+    #             shutil.copyfileobj(map_img.raw, f)
+    #     else:
+    #         return({"error": "could not fetch map image"})
+    #     #find distance between users, +- 20 meter error value when compared to baidu map's distance calculator
+    #     my_lat_rad = radians(my_lat)
+    #     my_long_rad = radians(my_long)
 
-        for i in activeuser_location:
-            their_lat_rad = radians(activeuser_location[i]["lat"])
-            their_long_rad = radians(activeuser_location[i]["long"])
+    #     for i in activeuser_location:
+    #         their_lat_rad = radians(activeuser_location[i]["lat"])
+    #         their_long_rad = radians(activeuser_location[i]["long"])
         
-            distance = 6371 * (2 * asin(sqrt(sin((their_lat_rad - my_lat_rad) / 2)**2 + cos(their_lat_rad) * cos(my_lat_rad) * sin((their_long_rad - my_long_rad) / 2)**2)))
-            # print(str(distance) + " KM",)
+    #         distance = 6371 * (2 * asin(sqrt(sin((their_lat_rad - my_lat_rad) / 2)**2 + cos(their_lat_rad) * cos(my_lat_rad) * sin((their_long_rad - my_long_rad) / 2)**2)))
+    #         # print(str(distance) + " KM",)
         
-            #check if any other users are in a 1100 meter range
-            if distance <= 1.1:
-                x_long.append(activeuser_location[i]["long"])
-                y_lat.append(activeuser_location[i]["lat"])
+    #         #check if any other users are in a 1100 meter range
+    #         if distance <= 1.1:
+    #             x_long.append(activeuser_location[i]["long"])
+    #             y_lat.append(activeuser_location[i]["lat"])
 
-        #convert lat and long to picture pixel coordinates
-        for i in range (len(x_long)):
-            genesispointLong = my_long - 0.013454430062566303
-            genesispointLat = my_lat - 0.010450340579161832
-            x.append((x_long[int(i)] - genesispointLong)/0.0000358785)
-            y.append((y_lat[int(i)] - genesispointLat)/0.0000278676)
+    #     #convert lat and long to picture pixel coordinates
+    #     for i in range (len(x_long)):
+    #         genesispointLong = my_long - 0.013454430062566303
+    #         genesispointLat = my_lat - 0.010450340579161832
+    #         x.append((x_long[int(i)] - genesispointLong)/0.0000358785)
+    #         y.append((y_lat[int(i)] - genesispointLat)/0.0000278676)
         
 
-        #find red zone
-        height = 25
-        width = 0
-        mapsquareX = []
-        mapsquareY = []
-        counter = 0
-        while height < 751:
-            counter = counter + 1
-            width = width + 25
-            count = 0
-            delete_itemX = []
-            delete_itemY = []
+    #     #find red zone
+    #     height = 25
+    #     width = 0
+    #     mapsquareX = []
+    #     mapsquareY = []
+    #     counter = 0
+    #     while height < 751:
+    #         counter = counter + 1
+    #         width = width + 25
+    #         count = 0
+    #         delete_itemX = []
+    #         delete_itemY = []
 
-            #find number of bikes in a 25 by 25 pixel area 
-            for i in range (len(x)):
-                if x[i] <= width and y[i] <= height and x[i] > width-25 and y[i] > height-25:
-                    count = count + 1
-                    delete_itemX.append(x[i])
-                    delete_itemY.append(y[i])
-            # delete bikes which are in a certain area of map after processing them
-            if len(delete_itemX) > 0:
-                for i in range(len(delete_itemX)):
-                    x.remove(delete_itemX[i])
-                    y.remove(delete_itemY[i])
+    #         #find number of bikes in a 25 by 25 pixel area 
+    #         for i in range (len(x)):
+    #             if x[i] <= width and y[i] <= height and x[i] > width-25 and y[i] > height-25:
+    #                 count = count + 1
+    #                 delete_itemX.append(x[i])
+    #                 delete_itemY.append(y[i])
+    #         # delete bikes which are in a certain area of map after processing them
+    #         if len(delete_itemX) > 0:
+    #             for i in range(len(delete_itemX)):
+    #                 x.remove(delete_itemX[i])
+    #                 y.remove(delete_itemY[i])
 
-            #if that area in map has more than XXX bikes, save its coordinates
-            if count > 1:
-                mapsquareX.extend([width-25,width,width-25,width])
-                mapsquareY.extend([height-25,height-25,height,height])
+    #         #if that area in map has more than XXX bikes, save its coordinates
+    #         if count > 1:
+    #             mapsquareX.extend([width-25,width,width-25,width])
+    #             mapsquareY.extend([height-25,height-25,height,height])
             
-            if width == 750:
-                height = height + 25
-                width = 0
+    #         if width == 750:
+    #             height = height + 25
+    #             width = 0
 
-        im = plt.imread("savedmaps/usermap.png")
-        fig, ax = plt.subplots()
-        im = ax.imshow(im, extent=[0,750,0,750])
+    #     im = plt.imread("savedmaps/usermap.png")
+    #     fig, ax = plt.subplots()
+    #     im = ax.imshow(im, extent=[0,750,0,750])
 
-        #plot red zones
-        squareX = np.array(mapsquareX)
-        squareY = np.array(mapsquareY)
-        amountofsquares = len(mapsquareX)/4
+    #     #plot red zones
+    #     squareX = np.array(mapsquareX)
+    #     squareY = np.array(mapsquareY)
+    #     amountofsquares = len(mapsquareX)/4
 
-        for i in range(int(amountofsquares)):
-            squarecoordlist = [4*i +1, 4*i + 3, 4*i + 2, 4*i]
-            im = plt.fill("a", "b", "r", alpha=0.3,
-                    data={"a": list(squareX[squarecoordlist]),
-                        "b": list(squareY[squarecoordlist])})
+    #     for i in range(int(amountofsquares)):
+    #         squarecoordlist = [4*i +1, 4*i + 3, 4*i + 2, 4*i]
+    #         im = plt.fill("a", "b", "r", alpha=0.3,
+    #                 data={"a": list(squareX[squarecoordlist]),
+    #                     "b": list(squareY[squarecoordlist])})
 
-        plt.savefig("savedmaps/redzoneimage.png", dpi=200)
-        # plt.show()
+    #     plt.savefig("savedmaps/redzoneimage.png", dpi=200)
+    #     # plt.show()

@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field
-
+from pydantic import BaseModel
 from typing import Optional
 
 UserID = int
@@ -7,15 +7,21 @@ UserID = int
 class User(SQLModel, table=True):
     __tablename__ = 'user'
     id: UserID = Field(primary_key=True)
-    username: str = Field(index=True)
+    username: str = Field(unique=True, index=True)
     password_hash: str
     email: str
-    friendlist: Optional[str] = None
+    share_location: bool = True
 
-class UpdateUser(SQLModel, table=True):
-    __tablename__ = 'user'
-    __table_args__ = {'extend_existing': True}
-    username: Optional[str]
-    password_hash: Optional[str]
-    email: Optional[str]
-    friendlist: Optional[str] = None
+
+class Friend(SQLModel, table=True):
+    __tablename__ = 'friend'
+    user1: UserID = Field(primary_key=True)
+    user2: UserID = Field(primary_key=True)
+
+class FriendRequestDB(SQLModel, table=True):
+    __tablename__ = 'friend_request'
+    user1: UserID = Field(primary_key=True)
+    user2: UserID = Field(primary_key=True)
+
+class FriendRequest(BaseModel):
+    friend_id: UserID

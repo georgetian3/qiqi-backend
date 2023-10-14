@@ -1,14 +1,17 @@
 import fastapi
 import services.user
 import services.location
+import services.auth
+from services.services import QiQiServices
+from starlette.responses import RedirectResponse
+
 
 class QiQiBaseApi(fastapi.FastAPI):
-    def __init__(self, 
-        user_service: services.user.UserService,
-        location_service: services.location.LocationService,
-        *args, **kwargs
-    ):
+    def __init__(self, services: QiQiServices, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        self.services = services
 
-        self.user_service = user_service
-        self.location_service = location_service
+        @self.get('/')
+        async def docs():
+            return RedirectResponse('/docs')

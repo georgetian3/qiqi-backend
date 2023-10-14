@@ -6,13 +6,13 @@ from services.auth import AuthService
 from typing import Annotated
 from starlette.exceptions import HTTPException
 from jose import jwt
+from apis.base import QiQiBaseApi
 
-class AuthApi(fastapi.FastAPI):
+class AuthApi(QiQiBaseApi):
     """ Auth API """
 
-    def __init__(self, auth_service: AuthService, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.auth_service = auth_service
         self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
         @self.post('/token', response_model=Token)

@@ -13,7 +13,7 @@ from models.location import *
 import nest_asyncio
 nest_asyncio.apply()
 
-class Database:
+class QiQiDatabase:
     def __init__(self, database_url: str):
         self.engine = create_async_engine(database_url)
         self.async_session = sessionmaker(self.engine, class_=AsyncSession)
