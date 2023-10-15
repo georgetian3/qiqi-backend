@@ -1,29 +1,28 @@
-import models.user
-from models.user import UserID
-import models.location
-from models.location import Location
+import shutil
+from datetime import datetime
+from math import asin, cos, radians, sin, sqrt
+from typing import List
 
+import pytz
+import sqlalchemy
 from sqlalchemy import select
-
 from sqlmodel import select
 
-from math import sin, cos, radians, asin, sqrt
+import models.location
+import models.user
+from config import QiQiConfig
+from models.database import QiQiDatabase
+from models.location import Location
+from models.user import UserID
 
 #import requests
 
-import shutil
 
 #import numpy as np
 
 #from matplotlib import pyplot as plt
 
 
-from models.database import QiQiDatabase
-from config import QiQiConfig
-import sqlalchemy
-from datetime import datetime
-import pytz
-from typing import List
 
 class LocationService:
     def __init__(self, database: QiQiDatabase, config: QiQiConfig):

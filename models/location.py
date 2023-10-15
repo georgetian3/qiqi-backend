@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel, Field
 from datetime import datetime
+
+from sqlmodel import Field, SQLModel
+
 DeviceID = int
 UserID = int
 

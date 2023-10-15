@@ -1,6 +1,8 @@
-from sqlmodel import SQLModel, Field
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
+from sqlmodel import Field, SQLModel
+
 
 class Token(BaseModel):
     access_token: str

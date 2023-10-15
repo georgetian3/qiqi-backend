@@ -1,29 +1,29 @@
-import fastapi
-from fastapi import status, Depends
+from fastapi import Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
-import sqlalchemy
-from models.user import Token
+from starlette.exceptions import HTTPException
+
 import models.database
 import models.location
 from apis.base import QiQiBaseApi
-from starlette.exceptions import HTTPException
-from typing import Annotated, Optional
+from models.user import Token, UserID
 
-from models.user import UserID
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 class UserApi(QiQiBaseApi):
     """ User API """
+
+    def get_current_user(self, token: str = Depends(oauth2_scheme)) -> models.user.User | None:
+            user_id = self.services.user.decode_token(token)
+            if user_id is None:
+                raise self.credentials_exception
+            return user_id
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
-        self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
-
         @self.post('/token', response_model=Token)
-        async def token(
-            form_data: Annotated[OAuth2PasswordRequestForm, fastapi.Depends()]
-        ):
+        async def token(form_data: OAuth2PasswordRequestForm = Depends()):
             user = await self.services.user.authenticate(form_data.username, form_data.password)
             if not user:
                 raise HTTPException(
@@ -34,26 +34,20 @@ class UserApi(QiQiBaseApi):
             access_token = self.services.user.create_access_token({'sub': user.id})
             return {'access_token': access_token, 'token_type': 'bearer'}
 
-        async def get_current_user(self, token: str) -> models.user.User | None:
-            try:
-                payload = JWTError.decode(token, self.config.SECRET_KEY, algorithms=[self.config.ALGORITHM])
-                user_id: UserID = payload.get('sub')
-                if user_id is None:
-                    return None
-            except JWTError:
-                return None
-            async with self.database.async_session() as session:
-                user = session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.id == id))
-            if user is None:
-                return None
-            return user
-
         @self.get('/user')
         async def user():
             return 'user'
+
+        self.credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+        
         
         @self.put('/user')
-        async def create_user():
+        async def create_user(user_id: UserID = Depends(self.get_current_user)):
             return await self.services.user.create_user()
         
         @self.patch('/user')
@@ -64,11 +58,11 @@ class UserApi(QiQiBaseApi):
         async def get_friends(user):
             await self.services.user.get_friends()
 
-        @self.patch('/friends')
+        @self.put('/friends')
         async def send_friend_request():
             ...
 
-        @self.put('/friends')
+        @self.patch('/friends')
         async def accept_friend_request():
             ...
 

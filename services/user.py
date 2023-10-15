@@ -1,16 +1,16 @@
 from datetime import datetime, timedelta
-import argon2
-from jose import JWTError, jwt
-import models.user
-import models.database
-import models.location
-
 from typing import Dict, List
+
+import argon2
+import sqlalchemy
+from jose import JWTError, jwt
 from sqlmodel import select
 
+import models.database
+import models.location
+import models.user
 from config import QiQiConfig
 
-import sqlalchemy
 
 class UserService:
 
@@ -18,7 +18,12 @@ class UserService:
         self.config = config
         self.database = database
 
-
+    async def decode_token(self, token: str) -> models.user.UserID | None:
+        try:
+            payload = jwt.decode(token, self.config.SECRET_KEY, algorithms=[self.config.ALGORITHM])
+            return payload.get('sub')
+        except JWTError:
+            return None
 
     async def hash(self, password: str) -> str:
         return argon2.hash_password(bytes(password)).decode()
@@ -40,22 +45,8 @@ class UserService:
     def create_access_token(self, data: Dict, expires_delta: timedelta = timedelta(minutes=15)) -> str:
         to_encode = data.copy()
         to_encode.update({'exp': datetime.utcnow() + expires_delta})
-        encoded_jwt = JWTError.encode(to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
         return encoded_jwt
-    
-    async def get_current_user(self, token: str) -> models.user.User | None:
-        try:
-            payload = jwt.decode(token, self.config.SECRET_KEY, algorithms=[self.config.ALGORITHM])
-            user_id: models.user.UserID = payload.get('sub')
-            if user_id is None:
-                return None
-        except JWTError:
-            return None
-        async with self.database.async_session() as session:
-            user = session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.id == id))
-        if user is None:
-            return None
-        return user
 
     async def create_user(self) -> models.user.User:
         new_user = models.user.User(

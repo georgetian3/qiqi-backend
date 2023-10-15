@@ -1,6 +1,7 @@
 import fastapi
-from services.services import QiQiServices
 from starlette.responses import RedirectResponse
+
+from services.services import QiQiServices
 
 
 class QiQiBaseApi(fastapi.FastAPI):

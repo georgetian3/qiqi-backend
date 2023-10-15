@@ -1,8 +1,9 @@
 """ QiQi API """
 
-from apis.user import UserApi
 from apis.location import LocationApi
-        
+from apis.user import UserApi
+
+
 class QiQiApi(
     UserApi,
     LocationApi,

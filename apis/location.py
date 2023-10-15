@@ -1,7 +1,7 @@
-from fastapi.responses import FileResponse
 import models.location
 from apis.base import QiQiBaseApi
-        
+
+
 class LocationApi(QiQiBaseApi):
     """ Location API """
     def __init__(self, *args, **kwargs):
@@ -21,16 +21,16 @@ class LocationApi(QiQiBaseApi):
 
         #     # return("location updated to lat = {}, long = {}".format(lat, long))
         
-        @self.get('/get_friend_location/{user_id}')
+        @self.get('/location/{user_id}')
         async def get_friend_location(id: int):
             return await self.location_service.get_friend_location_service(id)
 
-        @self.get('/bikes_around_me/{location}')
-        async def CreateRedZoneMap(my_lat: float, my_long: float):
-            activeuser_location = await self.location_service.get_all_bikes()
+        # @self.get('/bikes_around_me/{location}')
+        # async def CreateRedZoneMap(my_lat: float, my_long: float):
+        #     activeuser_location = await self.location_service.get_all_bikes()
 
-            await self.location_service.find_redzone(activeuser_location, my_lat, my_long)
+        #     await self.location_service.find_redzone(activeuser_location, my_lat, my_long)
 
-            return FileResponse('savedmaps/redzoneimage.png')
+        #     return FileResponse('savedmaps/redzoneimage.png')
 
 
