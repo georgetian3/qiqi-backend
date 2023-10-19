@@ -48,20 +48,22 @@ class UserService:
         encoded_jwt = jwt.encode(to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
         return encoded_jwt
 
-    async def create_user(self) -> models.user.User:
+    async def create_user(self, details: models.user.CreateUserRequest) -> models.user.User | Exception:
         new_user = models.user.User(
-            username='user15',
-            password_hash='testpwhash',
-            email='oo@mail.com',
+            username=details.username,
+            password_hash=self.hash(details.password),
+            email='',
             share_location=False
         )
 
         async with self.database.async_session() as session:
             session.add(new_user)
-            await session.commit()
-            user_location = models.location.UserLocation(user_id=new_user.id)
-            await session.commit()
-
+            try:
+                await session.commit()
+            except Exception as e:
+                return e
+            # user_location = models.location.UserLocation(user_id=new_user.id)
+            # await session.commit()
 
         return new_user
 
@@ -69,10 +71,10 @@ class UserService:
         if user_id is None and username is None:
             return None
         async with self.database.async_session() as session:
-            if user_id is not None:
-                user = await session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.id == user_id))
-            else:
-                user = await session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.username == username))
+            user = await session.scalar(
+                sqlalchemy.select(models.user.User)
+                    .where(models.user.User.id == user_id if username is None else models.user.User.username == username)
+            )
         return user
     
     async def get_friends(self, user_id: models.user.UserID) -> List[models.user.User]:

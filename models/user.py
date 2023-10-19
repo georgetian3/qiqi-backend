@@ -31,3 +31,7 @@ class FriendRequestDB(SQLModel, table=True):
 
 class FriendRequest(BaseModel):
     friend_id: UserID
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str

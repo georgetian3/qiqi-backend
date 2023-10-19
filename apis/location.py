@@ -1,8 +1,8 @@
 import models.location
-from apis.base import QiQiBaseApi
+from apis.base import QiQiBaseRouter
 
 
-class LocationApi(QiQiBaseApi):
+class LocationApi(QiQiBaseRouter):
     """ Location API """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -2,14 +2,15 @@ from fastapi import Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.exceptions import HTTPException
 
+import models.user
 import models.database
 import models.location
-from apis.base import QiQiBaseApi
+from apis.base import QiQiBaseRouter
 from models.user import Token, UserID
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
-class UserApi(QiQiBaseApi):
+class UserApi(QiQiBaseRouter):
     """ User API """
 
     def get_current_user(self, token: str = Depends(oauth2_scheme)) -> models.user.User | None:
@@ -34,9 +35,14 @@ class UserApi(QiQiBaseApi):
             access_token = self.services.user.create_access_token({'sub': user.id})
             return {'access_token': access_token, 'token_type': 'bearer'}
 
-        @self.get('/user')
-        async def user():
-            return 'user'
+        @self.get('/user/{id}')
+        async def get_user_by_id(id: UserID):
+            return await self.services.user.get_user(user_id=id)
+        
+        @self.get('/user/{username}')
+        async def get_user_by_username(username: str):
+            return await self.services.user.get_user(username=username)
+
 
         self.credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,9 +52,9 @@ class UserApi(QiQiBaseApi):
 
         
         
-        @self.put('/user')
-        async def create_user(user_id: UserID = Depends(self.get_current_user)):
-            return await self.services.user.create_user()
+        @self.put('/user', description='Create a new user')
+        async def create_user(details: models.user.CreateUserRequest):
+            return await self.services.user.create_user(details)
         
         @self.patch('/user')
         async def update_user():

@@ -17,4 +17,4 @@ if __name__ == '__main__':
         exit()
 
 services = QiQiServices(config=config, database=database)
-api = QiQiApi(services)
+api = QiQiApi(services=services)
