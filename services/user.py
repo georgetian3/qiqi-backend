@@ -4,19 +4,15 @@ from typing import Dict, List
 import argon2
 import sqlalchemy
 from jose import JWTError, jwt
-from sqlmodel import select
 
 import models.database
 import models.location
 import models.user
-from config import QiQiConfig
+import utils.hash
 
+from services.base import QiQiBaseService
 
-class UserService:
-
-    def __init__(self, database: models.database.QiQiDatabase, config: QiQiConfig):
-        self.config = config
-        self.database = database
+class UserService(QiQiBaseService):
 
     async def decode_token(self, token: str) -> models.user.UserID | None:
         try:
@@ -25,22 +21,14 @@ class UserService:
         except JWTError:
             return None
 
-    async def hash(self, password: str) -> str:
-        return argon2.hash_password(bytes(password)).decode()
-
     async def authenticate(self, username: str, password: str) -> models.user.User | None:
         """
-        Returns: True if password matches username, False if password does not match username or if username is not found
+        Returns: User instance if password matches username, else None
         """
-        async with self.database.async_session() as session:
-            user: models.user.User = await session.scalar(sqlalchemy.select(models.user.User).where(models.user.User.username == username))
+        user = await self.get_user(username=username)
         if user is None:
             return None
-        try:
-            argon2.verify_password(bytes(user.password_hash), bytes(password))
-            return user
-        except argon2.exceptions.VerifyMismatchError:
-            return None
+        return user if utils.hash.verify(user.password_hash, password) else None
 
     def create_access_token(self, data: Dict, expires_delta: timedelta = timedelta(minutes=15)) -> str:
         to_encode = data.copy()
@@ -51,7 +39,7 @@ class UserService:
     async def create_user(self, details: models.user.CreateUserRequest) -> models.user.User | Exception:
         new_user = models.user.User(
             username=details.username,
-            password_hash=self.hash(details.password),
+            password_hash=utils.hash.hash(details.password),
             email='',
             share_location=False
         )
@@ -92,7 +80,7 @@ class UserService:
 
     async def update_share_location_status(self, user_id: int, share_location: bool):
         async with self.database.async_session() as session:
-            statement = await session.execute(select(models.location.Location).where(models.location.Location.user_id == user_id))
+            statement = await session.execute(sqlalchemy.select(models.location.Location).where(models.location.Location.user_id == user_id))
 
             user_location_var = statement.one()[0]
             
@@ -128,11 +116,11 @@ class UserService:
         async with self.database.async_session() as session:
             try:
                 #find friend's id with username
-                statement = await session.execute(select(models.user.User).where(models.user.User.username == friend_user_name))
+                statement = await session.execute(sqlalchemy.select(models.user.User).where(models.user.User.username == friend_user_name))
                 friend = statement.one()[0]
 
                 #add friend's id to user
-                user_statement = await session.execute(select(models.user.User).where(models.user.User.id == user_id))
+                user_statement = await session.execute(sqlalchemy.select(models.user.User).where(models.user.User.id == user_id))
                 user = user_statement.one()[0]
                 print(user.friendlist)
                 if user.friendlist == None and friend.friendlist == None:

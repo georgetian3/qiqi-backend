@@ -1,8 +1,5 @@
-from typing import Optional
-
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
-
 
 class Token(BaseModel):
     access_token: str
@@ -10,14 +7,20 @@ class Token(BaseModel):
 
 UserID = int
 
-class User(SQLModel, table=True):
-    __tablename__ = 'user'
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(SQLModel):
     id: UserID = Field(primary_key=True)
     username: str = Field(unique=True, index=True)
-    password_hash: str
     nickname: str
     email: str
-    share_location: bool = True
+    share_location: bool
+
+class User(UserResponse, table=True):
+    __tablename__ = 'user'
+    password_hash: str
 
 class Friend(SQLModel, table=True):
     __tablename__ = 'friend'
@@ -32,6 +35,3 @@ class FriendRequestDB(SQLModel, table=True):
 class FriendRequest(BaseModel):
     friend_id: UserID
 
-class CreateUserRequest(BaseModel):
-    username: str
-    password: str

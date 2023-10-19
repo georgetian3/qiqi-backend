@@ -5,29 +5,19 @@ from typing import List
 
 import pytz
 import sqlalchemy
-from sqlalchemy import select
-from sqlmodel import select
 
 import models.location
 import models.user
-from config import QiQiConfig
-from models.database import QiQiDatabase
 from models.location import Location
 from models.user import UserID
 
 #import requests
-
-
 #import numpy as np
-
 #from matplotlib import pyplot as plt
 
+from services.base import QiQiBaseService
 
-
-class LocationService:
-    def __init__(self, database: QiQiDatabase, config: QiQiConfig):
-        self.config = config
-        self.database = database
+class LocationService(QiQiBaseService):
 
     async def upload_location(self, user_id: UserID, location: models.location.Location):
         location_db = models.location.LocationDB(**location.dict(), user_id=user_id, timestamp=datetime.now().astimezone(pytz.UTC))
@@ -44,11 +34,11 @@ class LocationService:
         #dictionary code: {lattitude, longitude}
         friend_location = {}
         async with self.database.async_session() as session:
-            statement = await session.execute(select(models.user.User).where(models.user.User.id == id))
+            statement = await session.execute(sqlalchemy.select(models.user.User).where(models.user.User.id == id))
             friendlist = statement.one()[0].friendlist
             friendlist = friendlist.split(",")
             row = 1
-            for i in await session.execute(select(Location)):
+            for i in await session.execute(sqlalchemy.select(Location)):
                 if i[0].share_location is not False:
                     location_lat = i[0].location_lat
                     location_long = i[0].location_long
@@ -67,7 +57,7 @@ class LocationService:
         #get every user location data from db
         async with self.database.async_session() as session:
             row = 1
-            for i in await session.execute(select(Location)):
+            for i in await session.execute(sqlalchemy.select(Location)):
                 if i[0].location_lat is not None and i[0].location_long is not None:
                     activeuser_location[row] = {"lat": i[0].location_lat, "long": i[0].location_long}
                     row = row + 1
