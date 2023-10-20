@@ -1,11 +1,6 @@
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 UserID = int
 
 class CreateUserRequest(BaseModel):
@@ -14,10 +9,15 @@ class CreateUserRequest(BaseModel):
 
 class UserResponse(SQLModel):
     id: UserID = Field(primary_key=True)
+    verified: bool = False
     username: str = Field(unique=True, index=True)
     email: str = Field(unique=True, index=True)
     nickname: str
     share_location: bool
+
+class VerificationCode(SQLModel, table=True):
+    user_id: UserID = Field(primary_key=True)
+    code: str = Field(unique=True, index=True)
 
 class User(UserResponse, table=True):
     __tablename__ = 'user'

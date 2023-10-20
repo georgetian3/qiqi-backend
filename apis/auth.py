@@ -29,12 +29,7 @@ class AuthApi(QiQiBaseRouter):
                 raise self.credentials_exception
             return token_200.response(
                 Token(
-                    access_token=self.services.auth.create_access_token({'sub': user.id}),
+                    access_token=self.services.auth.create_access_token(user.id),
                     token_type='bearer'
                 )
             )
-
-
-        
-
-  

@@ -12,14 +12,6 @@ import utils.email
 import utils.hash
 from services.base import QiQiBaseService
 
-test_user = models.user.User(
-    id=0,
-    username='testUsername',
-    email='test@georgetian.com',
-    nickname='testNickname',
-    share_location=True,
-    password_hash=utils.hash.hash('testPassword')
-)
 
 class UserService(QiQiBaseService):
 
@@ -27,8 +19,6 @@ class UserService(QiQiBaseService):
         """
         Returns: User instance if password matches username, else None
         """
-        if username_or_email == test_user.username:
-            return test_user
         if utils.email.is_valid(username_or_email):
             user = await self.get_user(email=username_or_email)
         else:
@@ -55,6 +45,9 @@ class UserService(QiQiBaseService):
             # await session.commit()
 
         return new_user
+    
+    async def verify(self, code) -> bool:
+        ...
 
     async def get_user(self, user_id: models.user.UserID = None, username: str = None, email: str = None) -> models.user.User | None:
         s = set([user_id, username, email])
