@@ -6,10 +6,10 @@ from jose import JWTError, jwt
 import models.database
 import models.location
 import models.user
-
 from services.base import QiQiBaseService
 
-class UserService(QiQiBaseService):
+
+class AuthService(QiQiBaseService):
 
     def decode_token(self, token: str) -> models.user.UserID | None:
         try:

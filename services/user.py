@@ -8,33 +8,34 @@ from jose import JWTError, jwt
 import models.database
 import models.location
 import models.user
+import utils.email
 import utils.hash
-
 from services.base import QiQiBaseService
+
+test_user = models.user.User(
+    id=0,
+    username='testUsername',
+    email='test@georgetian.com',
+    nickname='testNickname',
+    share_location=True,
+    password_hash=utils.hash.hash('testPassword')
+)
 
 class UserService(QiQiBaseService):
 
-    async def decode_token(self, token: str) -> models.user.UserID | None:
-        try:
-            payload = jwt.decode(token, self.config.SECRET_KEY, algorithms=[self.config.ALGORITHM])
-            return payload.get('sub')
-        except JWTError:
-            return None
-
-    async def authenticate(self, username: str, password: str) -> models.user.User | None:
+    async def authenticate(self, username_or_email: str, password: str) -> models.user.User | None:
         """
         Returns: User instance if password matches username, else None
         """
-        user = await self.get_user(username=username)
+        if username_or_email == test_user.username:
+            return test_user
+        if utils.email.is_valid(username_or_email):
+            user = await self.get_user(email=username_or_email)
+        else:
+            user = await self.get_user(username=username_or_email)
         if user is None:
             return None
         return user if utils.hash.verify(user.password_hash, password) else None
-
-    def create_access_token(self, data: Dict, expires_delta: timedelta = timedelta(minutes=15)) -> str:
-        to_encode = data.copy()
-        to_encode.update({'exp': datetime.utcnow() + expires_delta})
-        encoded_jwt = jwt.encode(to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
-        return encoded_jwt
 
     async def create_user(self, details: models.user.CreateUserRequest) -> models.user.User | Exception:
         new_user = models.user.User(
@@ -55,14 +56,18 @@ class UserService(QiQiBaseService):
 
         return new_user
 
-    async def get_user(self, user_id: models.user.UserID = None, username: str = None) -> models.user.User | None:
-        if user_id is None and username is None:
+    async def get_user(self, user_id: models.user.UserID = None, username: str = None, email: str = None) -> models.user.User | None:
+        s = set([user_id, username, email])
+        if len(s) != 2 or None not in s: # ensures only one parameter is filled and the rest is `None`
             return None
+        if user_id is not None:
+            where = models.user.User.id == user_id
+        elif username is not None:
+            where = models.user.User.username == username
+        else:
+            where = models.user.User.email == email
         async with self.database.async_session() as session:
-            user = await session.scalar(
-                sqlalchemy.select(models.user.User)
-                    .where(models.user.User.id == user_id if username is None else models.user.User.username == username)
-            )
+            user = await session.scalar(sqlalchemy.select(models.user.User).where(where))
         return user
     
     async def get_friends(self, user_id: models.user.UserID) -> List[models.user.User]:

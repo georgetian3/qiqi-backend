@@ -2,12 +2,12 @@ from fastapi import Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.exceptions import HTTPException
 
-import models.user
 import models.database
 import models.location
+import models.user
 from apis.base import QiQiBaseRouter
+from apis.documentedresponse import JDR, JDR204, JDR404, create_documentation
 from models.user import Token, UserID
-from apis.documentedresponse import JDR, create_documentation, JDR204, JDR404
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
@@ -23,18 +23,6 @@ class UserApi(QiQiBaseRouter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-
-        @self.post('/token', response_model=Token)
-        async def token(form_data: OAuth2PasswordRequestForm = Depends()):
-            user = await self.services.user.authenticate(form_data.username, form_data.password)
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail='Incorrect username or password',
-                    headers={'WWW-Authenticate': 'Bearer'},
-                )
-            access_token = self.services.user.create_access_token({'sub': user.id})
-            return {'access_token': access_token, 'token_type': 'bearer'}
 
         get_user_200 = JDR(status.HTTP_200_OK, JDR204.description, models.user.UserResponse)
         @self.get(

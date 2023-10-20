@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -14,8 +15,8 @@ class CreateUserRequest(BaseModel):
 class UserResponse(SQLModel):
     id: UserID = Field(primary_key=True)
     username: str = Field(unique=True, index=True)
+    email: str = Field(unique=True, index=True)
     nickname: str
-    email: str
     share_location: bool
 
 class User(UserResponse, table=True):

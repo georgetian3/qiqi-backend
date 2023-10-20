@@ -1,18 +1,20 @@
 """ QiQi API """
 
+from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+
+from apis.auth import AuthApi
 from apis.location import LocationApi
 from apis.user import UserApi
-from fastapi import FastAPI
+
 
 class QiQiApi(FastAPI):
     """ QiQi API """
-    VERSION = '/v1'
     def __init__(self, *args, **kwargs):
         super().__init__(title='QiQi API', *args, **kwargs)
-
-        self.include_router(UserApi(*args, **kwargs), prefix=QiQiApi.VERSION)
-        self.include_router(LocationApi(*args, **kwargs), prefix=QiQiApi.VERSION)
+        self.include_router(AuthApi(*args, **kwargs), tags=['auth'])
+        self.include_router(UserApi(*args, **kwargs), tags=['user'])
+        self.include_router(LocationApi(*args, **kwargs), tags=['location'])
 
         @self.get('/')
         async def docs():

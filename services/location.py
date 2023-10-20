@@ -10,12 +10,12 @@ import models.location
 import models.user
 from models.location import Location
 from models.user import UserID
+from services.base import QiQiBaseService
 
 #import requests
 #import numpy as np
 #from matplotlib import pyplot as plt
 
-from services.base import QiQiBaseService
 
 class LocationService(QiQiBaseService):
 

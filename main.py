@@ -1,5 +1,6 @@
 import argparse
 
+import dependencies.auth
 import models.database
 from apis.apis import QiQiApi
 from config import QiQiConfig
@@ -17,4 +18,5 @@ if __name__ == '__main__':
         exit()
 
 services = QiQiServices(config=config, database=database)
+dependencies.auth.auth_service = services.auth
 api = QiQiApi(services=services)

@@ -1,7 +1,9 @@
 from typing import List
+
 from fastapi import status
 from fastapi.responses import Response
 from pydantic import BaseModel
+
 
 class DocumentedResponse:
     def __init__(self, status_code, description, model=None):
