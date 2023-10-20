@@ -1,6 +1,9 @@
+from fastapi import Depends
+from dependencies.auth import get_current_user
 import models.location
+import models.user
 from apis.base import QiQiBaseRouter
-
+from apis.documentedresponse import JDR204, JDR400, create_documentation
 
 class LocationApi(QiQiBaseRouter):
     """ Location API """
@@ -8,18 +11,16 @@ class LocationApi(QiQiBaseRouter):
         super().__init__(*args, **kwargs)
 
         @self.get('/traffic')
-        async def get_traffic():
-            return await self.services.location.get_traffic()
+        async def get_traffic(area: models.location.Area, user: models.user.User = Depends(get_current_user)):
+            if not await self.services.location.get_traffic(area):
+                return JDR400.response()
+            return JDR204.response()
         
-        @self.post('/location')
-        async def upload_location(location: models.location.Location):
-            return await self.services.location.upload_location(location)
-        
-        # @self.post('/update_location/{user_id_and_location}')
-        # async def update_location(id: int, lat: float, long: float):
-        #     return await self.location_service.update_location_service(id, lat, long)
-
-        #     # return("location updated to lat = {}, long = {}".format(lat, long))
+        @self.post('/location', description='Upload user\'s current location', **create_documentation(JDR204, JDR400))
+        async def upload_location(location: models.location.Location, user: models.user.User = Depends(get_current_user)):
+            if not await self.services.location.upload_location(user.id, location):
+                return JDR400.response()
+            return JDR204.response()
         
         @self.get('/location/{user_id}')
         async def get_friend_location(id: int):

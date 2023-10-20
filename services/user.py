@@ -31,7 +31,7 @@ class UserService(QiQiBaseService):
         new_user = models.user.User(
             username=details.username,
             password_hash=utils.hash.hash(details.password),
-            email='',
+            email=details.email,
             share_location=False
         )
 
@@ -40,7 +40,7 @@ class UserService(QiQiBaseService):
             try:
                 await session.commit()
             except Exception as e:
-                return e
+                return type(e), e
             # user_location = models.location.UserLocation(user_id=new_user.id)
             # await session.commit()
 

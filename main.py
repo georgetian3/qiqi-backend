@@ -11,9 +11,8 @@ from services.services import QiQiServices
 config = QiQiConfig()
 database = models.database.QiQiDatabase(config.DATABSE_URL)
 services = QiQiServices(config=config, database=database)
-dependencies.auth.services = services
 api = QiQiApi(services=services)
-
+dependencies.auth.services = services
 
 def create_test_data():
     async def _create_test_data():
@@ -21,10 +20,10 @@ def create_test_data():
             CreateUserRequest(
                 username='testUser',
                 password='testPassword',
+                email='test@email.com',
             )
         )
     asyncio.run(_create_test_data())
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

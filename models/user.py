@@ -6,18 +6,15 @@ UserID = int
 class CreateUserRequest(BaseModel):
     username: str
     password: str
+    email: str
 
 class UserResponse(SQLModel):
     id: UserID = Field(primary_key=True)
-    verified: bool = False
+    verification_code: str = None
     username: str = Field(unique=True, index=True)
     email: str = Field(unique=True, index=True)
-    nickname: str
+    nickname: str = None
     share_location: bool
-
-class VerificationCode(SQLModel, table=True):
-    user_id: UserID = Field(primary_key=True)
-    code: str = Field(unique=True, index=True)
 
 class User(UserResponse, table=True):
     __tablename__ = 'user'

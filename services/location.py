@@ -3,9 +3,9 @@ from datetime import datetime
 from math import asin, cos, radians, sin, sqrt
 from typing import List
 
-import pytz
 import sqlalchemy
 
+import utils.timestamp
 import models.location
 import models.user
 from models.location import Location
@@ -17,14 +17,33 @@ from services.base import QiQiBaseService
 #from matplotlib import pyplot as plt
 
 
+def in_area(area: models.location.Area, location: models.location.Location) -> bool:
+    return (
+        location.longitude <= area.northwest.longitude and
+        location.latitude  <= area.northwest.latitude and
+        location.longitude >= area.southeast
+    )
+
 class LocationService(QiQiBaseService):
 
     async def upload_location(self, user_id: UserID, location: models.location.Location):
-        location_db = models.location.LocationDB(**location.dict(), user_id=user_id, timestamp=datetime.now().astimezone(pytz.UTC))
+        location_db = models.location.UserLocation(**location.dict(), user_id=user_id, timestamp=datetime.now().astimezone(pytz.UTC))
         async with self.database.async_session() as session:
             await session.merge(location_db)
-        ...
-    async def get_traffic(self):
+            await session.commit()
+        return True
+
+    async def get_traffic(self, area: models.location.Area):
+        oldest_timestamp = utils.timestamp.to_utc(datetime.now() - self.config.LOCATION_EXPIRY_TIME)
+        async with self.database.async_session() as session:
+            locations = await session.scalars(
+                sqlalchemy.select(models.location.Location)
+                    .where(
+                        sqlalchemy.and_(
+                            models.location.Location >= oldest_timestamp,
+                            models.location.Location.longitude
+                    )
+            )
         ...
 
     async def get_friends_location(self, user_id: UserID):
