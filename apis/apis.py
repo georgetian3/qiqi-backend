@@ -1,5 +1,6 @@
 """ QiQi API """
 
+import json
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
@@ -20,3 +21,6 @@ class QiQiApi(FastAPI):
         async def docs():
             return RedirectResponse('/docs')
         
+    def get_openapi(self):
+        with open('openapi.json', 'w') as f:
+            json.dump(self.openapi(), f, indent=2)

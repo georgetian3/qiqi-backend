@@ -29,8 +29,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--reset', action='store_true')
     parser.add_argument('--create-test-data', action='store_true')
+    parser.add_argument('--openapi', action='store_true')
     args = parser.parse_args()
     if args.reset:
         database.reset()
     if args.create_test_data:
         create_test_data()
+    if args.openapi:
+        api.get_openapi()

@@ -23,8 +23,8 @@ class LocationApi(QiQiBaseRouter):
             return JDR204.response()
         
         @self.get('/location/{user_id}')
-        async def get_friend_location(id: int):
-            return await self.location_service.get_friend_location_service(id)
+        async def get_friend_location(user_id: int):
+            return await self.location_service.get_friend_location_service(user_id)
 
         # @self.get('/bikes_around_me/{location}')
         # async def CreateRedZoneMap(my_lat: float, my_long: float):

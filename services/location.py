@@ -42,9 +42,9 @@ class LocationService(QiQiBaseService):
                         sqlalchemy.and_(
                             models.location.Location >= oldest_timestamp,
                             models.location.Location.longitude
+                        )
                     )
             )
-        ...
 
     async def get_friends_location(self, user_id: UserID):
         friends = await 1
