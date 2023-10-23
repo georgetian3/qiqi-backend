@@ -30,6 +30,7 @@ class AuthApi(QiQiBaseRouter):
             return token_200.response(
                 Token(
                     access_token=self.services.auth.create_access_token(user.id),
+                    expires_in=self.config.TOKEN_EXPIRY_TIME.seconds,
                     token_type='bearer'
                 )
             )
