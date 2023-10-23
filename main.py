@@ -11,7 +11,7 @@ from services.services import QiQiServices
 config = QiQiConfig()
 database = models.database.QiQiDatabase(config.DATABSE_URL)
 services = QiQiServices(config=config, database=database)
-api = QiQiApi(services=services)
+api = QiQiApi(config=config, services=services)
 dependencies.auth.services = services
 
 def create_test_data():
