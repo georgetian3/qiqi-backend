@@ -5,19 +5,19 @@ def location_inner(text: str) -> str:
     return '\n'.join(lines)
 
 files = {
-    'model/location_inner.dart': location_inner,
+    'model/validation_error_loc_inner.dart': location_inner,
 }
 
-dir = '~/repos/qiqi-app/lib/api/lib/'
+dir = '/Users/george/repos/qiqi-app/lib/api/lib/'
 
 
 for file in files:
     try:
-        file = dir + file
-        with open(file) as f:
+        path = dir + file
+        with open(path) as f:
             text = f.read()
         text = files[file](text)
-        with open(file, 'w') as f:
+        with open(path, 'w') as f:
             f.write(text)
     except Exception as e:
         print(f'Exception for file {file}: {e}')

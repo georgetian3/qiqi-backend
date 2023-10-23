@@ -10,7 +10,7 @@ class LocationApi(QiQiBaseRouter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        @self.get('/traffic')
+        @self.post('/traffic')
         async def get_traffic(area: models.location.Area, user: models.user.User = Depends(get_current_user)):
             if not await self.services.location.get_traffic(area):
                 return JDR400.response()
